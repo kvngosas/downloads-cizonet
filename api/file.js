@@ -1,7 +1,6 @@
-import fetch from "node-fetch";
-
 export default async function handler(req, res) {
   const { slug } = req.query;
+
   if (!slug) {
     res.status(400).send("File not specified");
     return;
@@ -21,16 +20,14 @@ export default async function handler(req, res) {
       return;
     }
 
-    const contentType =
-      response.headers.get("content-type") || "application/octet-stream";
-
-    res.setHeader("Content-Type", contentType);
+    res.setHeader("Content-Type", response.headers.get("content-type") || "application/octet-stream");
     res.setHeader(
       "Content-Disposition",
       `attachment; filename="${filePath.split("/").pop()}"`
     );
 
-    response.body.pipe(res);
+    const buffer = await response.arrayBuffer();
+    res.send(Buffer.from(buffer));
   } catch (error) {
     res.status(500).send("Error fetching file");
   }
